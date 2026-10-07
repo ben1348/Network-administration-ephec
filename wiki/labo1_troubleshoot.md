@@ -18,3 +18,6 @@ GOAL :
 ## Troubleshoot firewall bug
 en voulent configurer le firewall j'ai accidentellement couper la vm firewall j'ai eu donc ses erreur : 
 ![can't find /boot/kernel/kernel](image_1.png)
+
+pour solutionner le probleme il faut:  couper la vm -> relancer et accéder au bios avec esc -> seletionner pfsense
+et voila
