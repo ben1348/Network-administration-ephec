@@ -7,7 +7,7 @@ pour ce laboratoire on nous demande :
 3. de deployer une premiere VM
 
 
-## infrastructure
+## Infrastructure
 ![infra donné par le prof](image/labo1/infra_prof.png)
 ici c'est l'interface proxmox professeur (hyp-04) sur la quel nous devont nous connecter pour lancer nos hyperviseurs proxmox student(hyps-1601, hyps-1602) qui sont virtualiser. nous avons aussi un firewall Pfsense (fwns1601)
 
@@ -19,7 +19,7 @@ l'infra sera encore modifier par la suite dans le cours
 
 ## 1. PfSense
 
-### terminal installation
+### Terminal installation
 sur l'interface proxmox du professeur on va commencer par installer un firewall Pfsense (fwns1601) on lancer donc l'installation jusqu'a arriver a cette image : 
 ![installation de pfsense selection du wan](image/labo1/interface_du_firewall.png)
 il nous demande de selectionner l'interface Wan
@@ -35,7 +35,7 @@ ensuite nous ne devons pas installer l'interface lan pour le moment on peux donc
 ![installation de pfsense CE](image/labo1/installation_pfsense_ce.png)
 
 dans l'installation de pfsense CE on peux tout accepter par defaut
-### terminal configuration
+### Terminal configuration
 dans le terminal on doit configurer les interfaces du firewall donc dans l'image ci dessous on peux voir les options disponibles
 ![terminal configuration](image/labo1/terminal_configuration.png)
 on selectionne donc `1) Assign Interface`
@@ -53,7 +53,7 @@ pour la lan mettez l'adresse 172.31.80.2gid/24
 
 maintenant que c'estt fait on peux passer a la configuration de l'interface web de pfsense.
 
-### web interface installation
+### Web interface installation
 
 maintenant que pfsense est installé, on peux acceder a l'interface web de pfsense en entrant l'adresse ip 172.31.80.216
 
@@ -92,7 +92,7 @@ on lui donne comme ip : 10.gid.0.254/24 ici ca sera la gateway de notre vlan  po
 
 pour finir on va configurer un simple règle de firewall pour autoriser le trafic sur ce vlan & un serveur DHCP pour les VMs.
 
-#### règle de firewall
+#### Règle de firewall
 ![firewall](image/labo1/rules_configuration_Opt2.png)
 ici cliquer sur un des 2 add pour ajouter une règle de firewall.
 dans cette règle on va mettre protocol en Any et source en Any meme chose pour destination.
@@ -111,4 +111,69 @@ on peut tester que le jump server peux accéder à internet en pingant google.co
 
 ## 2. Proxmox
 
-on va maintenant installer un serveur proxmox VE.
+on va maintenant installer nos deux serveur proxmox VE.
+donc on lance une premiere VM Proxmox VE ont tombe sur cette écran : 
+
+![Welcome to proxmox ve](image/labo1/ecran_installation_proxmox.png)
+
+on lance donc l'installation `Graphical` ensuite on arrive jusqu'a cette étape 
+choisir le disque ou ont va installer proxmox :
+
+![choisir le disque d'installation](image/labo1/choisir_sont_disque_dur.png)
+il nous est demander d'installer sur le disque avec 8gb dans notre labo.
+
+il nous est demander de donnée un mot de passe ici 
+
+![password pour proxmox](image/labo1/password_proxmox.png)
+
+après on passe a la configuration réseau du proxmox 
+
+![configuration réseau](image/labo1/ip_adresses_proxmox.png)
+
+hyps01 : 172.31.80.16/24
+hyps02 : 172.31.80.116/24
+
+
+### Web interface proxmox stu
+
+après l'installation de proxmox on peux accèder a l'app web via leur adresse ip sur le jump serveur 
+![gui_proxmox_stu](image/labo1/gui_proxmox_stu.png)
+entrer votre identifiant et votre mot de passe que vous avez configurez dans l'installation de proxmox ve.
+
+#### configue network
+maintenant nous allons crée un nouveau linux bridge pour connectez nos VMs a internet
+cliquez sur l'hyperviseur a gauche puis system -> network -> create -> Linux Bridge :
+![creer linux bridge](image/labo1/create_linux_bridge.png)
+appelez le vmnets et suivez les instructions donnez :
+ - ne pas donnez d'adresse a se linux bridge 
+ - enable le VLANs
+ - donnez le liens physique liez a stuVmNet
+
+ ![config linux bridge vmnets](image/labo1/config_linux_bridge_vmnets.png)
+apply les changements
+
+#### configue storage
+mainenat nous allons configurez l'endroite ou les vm seront installer 
+
+allez dans la tab disks -> ZFS -> cliquez sur create:
+![creé zfs](image/labo1/create_zfs.png)
+ici on va faire de la raid 1 (mirror) avec 2 disque dur qui sont connectez a notre proxmox ve
+![configue zfs](image/labo1/configue_zfs.png)
+
+#### installation d'une image iso
+a gauche allez dans local de votre hyperviseur et chercher la tab iso images.
+vous avez Download from URL on peux passez par exemple une url pour dl une debian :
+`https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-13.7.0-amd64-netinst.iso`
+![download iso test](image/labo1/download_iso_debian.png)
+
+## 3. VM deployement
+
+section accez rapide ici je vais pouvoir tester si mon vlan est bien configurez en plus de déployer une vm
+
+en haut a droite on peux cliquez sur create VM
+etape importante :
+- OS selectionnez l'iso qu'on a dl 
+- Disks BUS/Device VirtIO Bloc et mettre comme size 8 Go
+- Network : desactiver firewall selectionnez vmnets et mettez le vlan tag gid de votre groupe
+
+![installer premiere vm](image/labo1/install_first_vm.png)
